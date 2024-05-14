@@ -1,31 +1,34 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { nanoid } from "nanoid";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
+
+import { selectTextFilter } from "./filtersSlice";
 
 const slice = createSlice({
   name: "contacts",
   initialState: {
     items: [],
+    loading: false,
+    error: null,
   },
-  reducers: {
-    addContact: {
-      reducer(state, action) {
-        state.items.push(action.payload);
-      },
-      prepare({ name, number }) {
-        return {
-          payload: {
-            id: nanoid(),
-            name,
-            number,
-          },
-        };
-      },
-    },
-    deleteContact(state, action) {
-      state.items = state.items.filter((item) => item.id !== action.payload.id);
-    },
-  },
+  extraReducers: (builder)=> builder;
 });
+//simple reducers
+export const selectContacts = (state) => state.contacts.items;
+export const selectLoading = (state) => state.contacts.loading;
+export const selectError = (state) => state.contacts.error;
+//hard reducers
+export const selectVisibleContacts = createSelector(
+  [selectContacts, selectTextFilter],
+  (contacts, filter) => {
+    return (
+      contacts?.filter(
+        (contact) =>
+          contact.name !== undefined &&
+          contact.name
+            .toLowerCase()
+            .includes(filter ? filter.toLowerCase() : "")
+      ) || []
+    );
+  }
+);
 
-export const { addContact, deleteContact } = slice.actions;
 export default slice.reducer;
